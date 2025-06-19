@@ -47,12 +47,12 @@ jobs:
 
       - name: Run Smoke Tests
         if: github.event.inputs.test_suite == 'smoke' || (github.event_name != 'workflow_dispatch')
-        run: mvn clean test -DsuiteXmlFile=src/test/resources/testng-smoke.xml -Dmaven.test.failure.ignore=true
+        run: mvn clean test -DsuiteXmlFile=testng-smoke.xml -Dmaven.test.failure.ignore=true
         continue-on-error: true
 
       - name: Run Regression Tests
         if: github.event.inputs.test_suite == 'regression'
-        run: mvn clean test -DsuiteXmlFile=src/test/resources/testng-regression.xml -Dmaven.test.failure.ignore=true
+        run: mvn clean test -DsuiteXmlFile=testng-regression.xml -Dmaven.test.failure.ignore=true
         continue-on-error: true
 
       - name: Run All Tests
@@ -63,6 +63,7 @@ jobs:
       - name: Generate Allure Report
         if: always()
         run: mvn allure:report
+        continue-on-error: true
 
       - name: Upload Allure Results
         if: always()
@@ -96,14 +97,23 @@ jobs:
           path: target/surefire-reports/
           retention-days: 7
 
-      - name: Publish Test Results
+      - name: Test Summary
         if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: API Test Results (Java ${{ matrix.java-version }})
-          path: target/surefire-reports/*.xml
-          reporter: java-junit
-          fail-on-error: false
+        run: |
+          echo "## Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          if [ -d target/surefire-reports ] && [ "$(ls -A target/surefire-reports)" ]; then
+            echo "✅ Test results generated successfully" >> $GITHUB_STEP_SUMMARY
+            echo "📊 Check Allure reports in artifacts for detailed results" >> $GITHUB_STEP_SUMMARY
+            if [ -f target/surefire-reports/testng-results.xml ]; then
+              echo "📋 TestNG results file found" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ -f target/surefire-reports/testng-failed.xml ]; then
+              echo "⚠️ Some tests failed - check reports for details" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ No test results found" >> $GITHUB_STEP_SUMMARY
+            echo "🔍 Check logs for compilation or execution errors" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Comment PR with Test Results
         if: github.event_name == 'pull_request' && always()
@@ -111,11 +121,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const path = './target/surefire-reports/testng-results.xml';
+            const path = './target/surefire-reports';
 
-            if (fs.existsSync(path)) {
-              const results = fs.readFileSync(path, 'utf8');
-              // Parse results and create comment
+            if (fs.existsSync(path) && fs.readdirSync(path).length > 0) {
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
@@ -129,12 +137,27 @@ jobs:
                 📝 **Test Logs**: Available in artifacts
                 `
               });
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## API Test Results (Java ${{ matrix.java-version }})
+                
+                ❌ Tests failed to execute properly. Check the workflow logs for details.
+                `
+              });
             }
 
   deploy-reports:
     needs: api-tests
     runs-on: ubuntu-latest
-    if: always() && github.ref == 'refs/heads/main'
+    if: always() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -145,9 +168,11 @@ jobs:
         with:
           name: allure-report-java-17
           path: ./allure-report
+        continue-on-error: true
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        if: hashFiles('./allure-report/**') != ''
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./allure-report
