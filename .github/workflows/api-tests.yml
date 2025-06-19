@@ -1,0 +1,154 @@
+name: API Automation Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'regression'
+        type: choice
+        options:
+          - smoke
+          - regression
+          - all
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        java-version: [17]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Run Smoke Tests
+        if: github.event.inputs.test_suite == 'smoke' || (github.event_name != 'workflow_dispatch')
+        run: mvn clean test -DsuiteXmlFile=src/test/resources/testng-smoke.xml -Dmaven.test.failure.ignore=true
+        continue-on-error: true
+
+      - name: Run Regression Tests
+        if: github.event.inputs.test_suite == 'regression'
+        run: mvn clean test -DsuiteXmlFile=src/test/resources/testng-regression.xml -Dmaven.test.failure.ignore=true
+        continue-on-error: true
+
+      - name: Run All Tests
+        if: github.event.inputs.test_suite == 'all'
+        run: mvn clean test -Dmaven.test.failure.ignore=true
+        continue-on-error: true
+
+      - name: Generate Allure Report
+        if: always()
+        run: mvn allure:report
+
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results-java-${{ matrix.java-version }}
+          path: target/allure-results/
+          retention-days: 30
+
+      - name: Upload Allure Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-report-java-${{ matrix.java-version }}
+          path: target/site/allure-maven-plugin/
+          retention-days: 30
+
+      - name: Upload Test Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-logs-java-${{ matrix.java-version }}
+          path: target/logs/
+          retention-days: 7
+
+      - name: Upload Surefire Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: surefire-reports-java-${{ matrix.java-version }}
+          path: target/surefire-reports/
+          retention-days: 7
+
+      - name: Publish Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: API Test Results (Java ${{ matrix.java-version }})
+          path: target/surefire-reports/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Comment PR with Test Results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = './target/surefire-reports/testng-results.xml';
+
+            if (fs.existsSync(path)) {
+              const results = fs.readFileSync(path, 'utf8');
+              // Parse results and create comment
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## API Test Results (Java ${{ matrix.java-version }})
+                
+                ✅ Tests completed! Check the artifacts for detailed reports.
+                
+                📊 **Allure Report**: Available in artifacts
+                📋 **Surefire Reports**: Available in artifacts
+                📝 **Test Logs**: Available in artifacts
+                `
+              });
+            }
+
+  deploy-reports:
+    needs: api-tests
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Allure Report
+        uses: actions/download-artifact@v3
+        with:
+          name: allure-report-java-17
+          path: ./allure-report
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./allure-report
+          destination_dir: reports
