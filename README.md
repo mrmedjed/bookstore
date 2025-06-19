@@ -52,7 +52,7 @@ api-automation-task/
 
 ```bash
 # Clone and setup
-git clone https://github.com/your-username/api-automation-task.git
+git clone https://github.com/mrmedjed/bookstore.git
 cd api-automation-task
 mvn clean install
 
@@ -93,7 +93,7 @@ mvn allure:serve                       # Generate and view Allure report
 - **PUT**: Update existing, non-existent authors
 - **DELETE**: Delete existing, error handling
 
-**Total**: 40+ test cases covering positive, negative, and edge scenarios
+**Total**: 70+ test cases covering positive, negative, and edge scenarios
 
 ## 📊 Reports & Logging
 
@@ -111,7 +111,7 @@ mvn allure:serve                       # Generate and view Allure report
 // src/main/java/com/bookstore/config/ApiConfig.java
 public static final String BASE_URL = "https://fakerestapi.azurewebsites.net";
 public static final String API_VERSION = "/api/v1";
-public static final int DEFAULT_TIMEOUT = 30000;
+public static final int DEFAULT_TIMEOUT = 5000;
 ```
 
 ### TestNG Suites
