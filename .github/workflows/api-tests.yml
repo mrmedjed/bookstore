@@ -66,7 +66,7 @@ jobs:
 
       - name: Upload Allure Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: allure-results-java-${{ matrix.java-version }}
           path: target/allure-results/
@@ -74,7 +74,7 @@ jobs:
 
       - name: Upload Allure Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: allure-report-java-${{ matrix.java-version }}
           path: target/site/allure-maven-plugin/
@@ -82,7 +82,7 @@ jobs:
 
       - name: Upload Test Logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-logs-java-${{ matrix.java-version }}
           path: target/logs/
@@ -90,7 +90,7 @@ jobs:
 
       - name: Upload Surefire Reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: surefire-reports-java-${{ matrix.java-version }}
           path: target/surefire-reports/
@@ -141,7 +141,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Allure Report
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: allure-report-java-17
           path: ./allure-report
