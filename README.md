@@ -1,6 +1,6 @@
 # API Automation Testing - Online Bookstore
 
-[![API Tests](https://github.com/your-username/api-automation-task/actions/workflows/api-tests.yml/badge.svg)](https://github.com/your-username/api-automation-task/actions/workflows/api-tests.yml)
+[![API Tests](https://github.com/mrmedjed/bookstore/actions/workflows/api-tests.yml/badge.svg)](https://github.com/mrmedjed/bookstore/actions/workflows/api-tests.yml)
 [![Java](https://img.shields.io/badge/Java-17-blue.svg)](https://openjdk.java.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.6%2B-blue.svg)](https://maven.apache.org/)
 [![REST Assured](https://img.shields.io/badge/REST%20Assured-5.4.0-green.svg)](https://rest-assured.io/)
@@ -158,10 +158,6 @@ public void testNewFeature_ShouldReturnExpectedResult() {
 5. Submit pull request
 
 ## 📚 Documentation
-
-- **[Quick Start Guide](docs/QUICK_START_GUIDE.md)**: Getting started
-- **[Test Case Analysis](docs/TEST_CASE_ANALYSIS.md)**: Detailed test documentation
-- **[TestNG Guide](docs/TESTNG_EXECUTION_GUIDE.md)**: Configuration details
 - **[FakeRestAPI Docs](https://fakerestapi.azurewebsites.net/index.html)**: API specification
 
 ## 🐛 Troubleshooting
@@ -180,10 +176,4 @@ export JAVA_HOME=/path/to/java17
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
 **Built with ❤️ using Java 17, REST Assured, TestNG, and Allure**
-
-_Last Updated: 2024 - Version 1.0.0_
