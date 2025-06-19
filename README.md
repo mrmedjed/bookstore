@@ -1,6 +1,6 @@
 # API Automation Testing - Online Bookstore
 
-[![API Tests](https://github.com/your-username/api-automation-task/actions/workflows/api-tests.yml/badge.svg)](https://github.com/your-username/api-automation-task/actions/workflows/api-tests.yml)
+[![API Tests](https://github.com/mrmedjed/bookstore/actions/workflows/api-tests.yml/badge.svg)](https://github.com/mrmedjed/bookstore/actions/workflows/api-tests.yml)
 [![Java](https://img.shields.io/badge/Java-17-blue.svg)](https://openjdk.java.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.6%2B-blue.svg)](https://maven.apache.org/)
 [![REST Assured](https://img.shields.io/badge/REST%20Assured-5.4.0-green.svg)](https://rest-assured.io/)
