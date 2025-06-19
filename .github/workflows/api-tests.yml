@@ -19,6 +19,9 @@ on:
           - smoke
           - regression
           - all
+          
+env:
+  REPORT_URL: https://mrmedjed.github.io/bookstore/reports/index.html
 
 jobs:
   api-tests:
@@ -143,7 +146,7 @@ jobs:
           echo "## Test Execution Summary" >> $GITHUB_STEP_SUMMARY
           if [ -d target/surefire-reports ] && [ "$(ls -A target/surefire-reports)" ]; then
             echo "✅ Test results generated successfully" >> $GITHUB_STEP_SUMMARY
-            echo "📊 Check Allure reports in artifacts for detailed results" >> $GITHUB_STEP_SUMMARY
+            echo "📊 Report URL: $REPORT_URL" >> $GITHUB_STEP_SUMMARY
             if [ -f target/surefire-reports/testng-results.xml ]; then
               echo "📋 TestNG results file found" >> $GITHUB_STEP_SUMMARY
             fi
