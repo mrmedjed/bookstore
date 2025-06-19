@@ -158,10 +158,6 @@ public void testNewFeature_ShouldReturnExpectedResult() {
 5. Submit pull request
 
 ## 📚 Documentation
-
-- **[Quick Start Guide](docs/QUICK_START_GUIDE.md)**: Getting started
-- **[Test Case Analysis](docs/TEST_CASE_ANALYSIS.md)**: Detailed test documentation
-- **[TestNG Guide](docs/TESTNG_EXECUTION_GUIDE.md)**: Configuration details
 - **[FakeRestAPI Docs](https://fakerestapi.azurewebsites.net/index.html)**: API specification
 
 ## 🐛 Troubleshooting
@@ -180,10 +176,4 @@ export JAVA_HOME=/path/to/java17
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
 **Built with ❤️ using Java 17, REST Assured, TestNG, and Allure**
-
-_Last Updated: 2024 - Version 1.0.0_
