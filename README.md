@@ -97,7 +97,9 @@ mvn allure:serve                       # Generate and view Allure report
 
 ## 📊 Reports & Logging
 
-- **Allure Reports**: Comprehensive HTML reports with step-by-step details
+- **Allure Reports**:  
+  Generated HTML reports with detailed test execution steps, available live on GitHub Pages:  
+  🔗 [https://mrmedjed.github.io/bookstore/reports/](https://mrmedjed.github.io/bookstore/reports/index.html)  
 - **TestNG Reports**: Standard XML/HTML reports in `target/surefire-reports/`
 - **Logs**: Structured logging to `target/logs/api-tests.log`
 
