@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+
+<suite name="BookstoreAPI-RegressionTestSuite" verbose="1">
+    <listeners>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+    </listeners>
+    
+    <!-- Regression Tests Only -->
+    <test name="RegressionTests" preserve-order="false">
+        <groups>
+            <run>
+                <include name="regression"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.bookstore.tests.BookApiTests"/>
+            <class name="com.bookstore.tests.AuthorApiTests"/>
+            <class name="com.bookstore.tests.IntegrationTests"/>
+            <class name="com.bookstore.tests.SecurityTests"/>
+        </classes>
+    </test>
+</suite> 
