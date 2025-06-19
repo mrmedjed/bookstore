@@ -60,9 +60,41 @@ jobs:
         run: mvn clean test -Dmaven.test.failure.ignore=true
         continue-on-error: true
 
+      - name: Check Allure Results
+        if: always()
+        run: |
+          echo "Checking Allure results directory..."
+          if [ -d "target/allure-results" ]; then
+            echo "✅ Allure results directory exists"
+            echo "📁 Contents:"
+            ls -la target/allure-results/
+          else
+            echo "❌ Allure results directory not found"
+            mkdir -p target/allure-results
+            echo "📁 Created empty results directory"
+          fi
+
       - name: Generate Allure Report
         if: always()
-        run: mvn allure:report
+        run: |
+          echo "Generating Allure report..."
+          mvn allure:report
+          echo "Checking generated report..."
+          if [ -d "target/site/allure-maven-plugin" ]; then
+            echo "✅ Allure report generated successfully"
+            echo "📁 Report contents:"
+            ls -la target/site/allure-maven-plugin/
+          else
+            echo "❌ Allure report not found, trying alternative path..."
+            if [ -d "target/allure-report" ]; then
+              echo "✅ Found report in target/allure-report"
+              ls -la target/allure-report/
+            else
+              echo "❌ No Allure report found in any expected location"
+              echo "Available directories in target:"
+              ls -la target/ || echo "No target directory found"
+            fi
+          fi
         continue-on-error: true
 
       - name: Upload Allure Results
@@ -73,12 +105,20 @@ jobs:
           path: target/allure-results/
           retention-days: 30
 
-      - name: Upload Allure Report
-        if: always()
+      - name: Upload Allure Report (Maven Plugin Path)
+        if: always() && hashFiles('target/site/allure-maven-plugin/**') != ''
         uses: actions/upload-artifact@v4
         with:
           name: allure-report-java-${{ matrix.java-version }}
           path: target/site/allure-maven-plugin/
+          retention-days: 30
+
+      - name: Upload Allure Report (Target Path)
+        if: always() && hashFiles('target/allure-report/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-java-${{ matrix.java-version }}
+          path: target/allure-report/
           retention-days: 30
 
       - name: Upload Test Logs
@@ -165,10 +205,36 @@ jobs:
           path: ./allure-report
         continue-on-error: true
 
+      - name: Verify Report Content
+        run: |
+          echo "Checking downloaded report content..."
+          if [ -d "./allure-report" ] && [ "$(ls -A ./allure-report)" ]; then
+            echo "✅ Report content found"
+            echo "📁 Contents:"
+            ls -la ./allure-report/
+            echo "📄 Looking for index.html..."
+            find ./allure-report -name "index.html" -type f || echo "No index.html found"
+            
+            # If no index.html found in root, try to find it in subdirectories
+            if [ ! -f "./allure-report/index.html" ]; then
+              REPORT_INDEX=$(find ./allure-report -name "index.html" -type f | head -1)
+              if [ -n "$REPORT_INDEX" ]; then
+                echo "Found index.html at: $REPORT_INDEX"
+                # Create a simple redirect
+                echo '<html><head><meta http-equiv="refresh" content="0; url=./index.html"></head><body><p>Redirecting...</p></body></html>' > ./allure-report/index.html
+              fi
+            fi
+          else
+            echo "❌ No report content found"
+            echo "Creating placeholder report..."
+            mkdir -p ./allure-report
+            echo '<html><head><title>No Test Results</title></head><body><h1>No test results available</h1><p>Tests may have failed to run or generate reports.</p></body></html>' > ./allure-report/index.html
+          fi
+
       - name: Deploy to GitHub Pages
-        if: hashFiles('./allure-report/**') != ''
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./allure-report
           destination_dir: reports
+          force_orphan: true
